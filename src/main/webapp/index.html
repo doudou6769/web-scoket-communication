@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket</title>
+    <script type="application/javascript" src="/js/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+    <div id="connectionBefore">
+        <span>请输入用户名以创建连接：</span><input type="text" id="username"/><\br>
+        <button type="button" id="connection">连接</button>
+    </div>
+    <div id="connectionOk" style="display: none">
+        <p>当前在线人数：<span id="totalCount"></span></p>
+        <ol id="userList">
+
+        </ol>
+        <div>
+            <button id="closeConnection">关闭连接</button>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        let webSocket = null;
+        $("#connection").click(function(){
+            let username = $("#username").val();
+            if(username === '' || username === undefined){
+                alert("请输入用户名！");
+                return
+            }
+            webSocket = new WebSocket("ws://localhost:8083/websocket/" + username);
+            webSocket.onopen = () => {
+                console.log("连接打开！");
+            };
+            webSocket.onmessage = function (msg) {
+                console.log(msg);
+                let object = eval('(' + msg.data + ')');
+                $("#totalCount").html(object.users.length);
+                let $userList = $("#userList").empty();
+
+                console.log(object.users);
+                object.users.forEach(user => {
+                    $userList.append("<li>" +user+ "</li>");
+                });
+                $("#connectionOk").css("display","block");
+                console.log(msg);
+            };
+            webSocket.onclose = function(){
+                console.log("连接关闭！")
+            };
+            webSocket.onerror = function () {
+                console.log("发生错误！")
+            }
+        });
+        $("#closeConnection").click(function () {
+            $("#connectionOk").css("display","none");
+            webSocket.close();
+        });
+    </script>
+</body>
+</html>
